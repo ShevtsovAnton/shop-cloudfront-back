@@ -8,7 +8,8 @@
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "swagger": "node swagger/app.js"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",
@@ -17,7 +18,9 @@
     "ts-jest": "^29.2.5",
     "aws-cdk": "2.161.1",
     "ts-node": "^10.9.2",
-    "typescript": "~5.6.2"
+    "typescript": "~5.6.2",
+    "express": "^4.21.1",
+    "swagger-ui-express": "^5.0.1"
   },
   "dependencies": {
     "aws-cdk-lib": "2.161.1",

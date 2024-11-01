@@ -2,6 +2,7 @@
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { ShopCloudfrontBackStack } from '../lib/shop-cloudfront-back-stack';
+import { ImportServiceStack } from '../lib/import-service/import-service-stack';
 
 const app = new cdk.App();
 new ShopCloudfrontBackStack(app, 'ShopCloudfrontBackStack', {
@@ -19,3 +20,5 @@ new ShopCloudfrontBackStack(app, 'ShopCloudfrontBackStack', {
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
+
+new ImportServiceStack(app, 'ImportServiceBucket', {})

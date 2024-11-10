@@ -8,8 +8,10 @@ import * as notifications from "aws-cdk-lib/aws-s3-notifications";
 import * as path from "path";
 import { HttpMethods } from "aws-cdk-lib/aws-s3";
 
+import { ShopCloudfrontBackStack } from '../shop-cloudfront-back-stack';
+
 export class ImportServiceStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, shopCloudfrontBackStack: ShopCloudfrontBackStack, props?: cdk.StackProps) {
     super(scope, id, props);
 
     const bucket = new aws_s3.Bucket(this, 'ImportServiceBucket', {
@@ -33,6 +35,7 @@ export class ImportServiceStack extends cdk.Stack {
       handler: 'importProductsFile',
       environment: {
         BUCKET_NAME: bucket.bucketName,
+        CATALOG_ITEMS_QUEUE_URL: shopCloudfrontBackStack.catalogItemsQueue.queueUrl
       }
     });
 

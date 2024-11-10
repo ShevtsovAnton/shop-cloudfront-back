@@ -1,10 +1,14 @@
 import { Readable } from 'stream';
 import { S3Event } from "aws-lambda";
 import { S3Client, GetObjectCommand, CopyObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { SQS, SendMessageCommand } from "@aws-sdk/client-sqs";
 
 import csv = require('csv-parser');
 
 const s3 = new S3Client({region: process.env.AWS_REGION});
+const sqs = new SQS({region: process.env.AWS_REGION});
+
+const CATALOG_ITEMS_QUEUE_URL = process.env.CATALOG_ITEMS_QUEUE_URL;
 
 const getReadableStream = (webStream: ReadableStream) => new Readable({
   async read() {
@@ -30,6 +34,26 @@ const getReadableStream = (webStream: ReadableStream) => new Readable({
   },
 });
 
+const sendParsedRowToSqs = async (row: any) => {
+  try {
+    const product = {
+      ...row,
+      price: Number(row.price),
+      count: Number(row.count),
+    }
+    const result = await sqs.send(new SendMessageCommand({
+      QueueUrl: CATALOG_ITEMS_QUEUE_URL,
+      MessageBody: JSON.stringify(product),
+    }));
+
+    if (!result.MessageId) {
+      throw new Error(`MessageId is undefined, result: ${JSON.stringify(result)}`);
+    }
+  } catch (error) {
+    console.log('Unable to send parsed row to sqs:', row, error);
+  }
+}
+
 export async function importFileParser(event: S3Event) {
   for (const record of event.Records) {
     const objectData = await s3.send(new GetObjectCommand({
@@ -44,9 +68,7 @@ export async function importFileParser(event: S3Event) {
     await new Promise((resolve, reject) => {
       getReadableStream(objectData?.Body!.transformToWebStream())
         .pipe(csv({separator: ';'}))
-        .on('data', (row) => {
-          console.log('Parsed Row:', row);
-        })
+        .on('data', sendParsedRowToSqs)
         .on('end', resolve)
         .on('error', reject)
     });
